@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NURVELIO - Dashboard Keluarga</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+  <!-- Supabase JS SDK via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -15,6 +16,12 @@
         }
       }
     }
+
+    // Inisialisasi Supabase untuk Browser (disesuaikan dari format modul)
+    const supabaseUrl = 'https://iqvnnaegzlmmtluzsdjx.supabase.co';
+    const supabaseKey = 'sb_publishable_cse4EDEA-O5NBEEL1XKOOg_arJ9wHo-'; // Masukkan anon/public key Anda di sini
+    const { createClient } = supabase;
+    const _supabase = createClient(supabaseUrl, supabaseKey);
   </script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen font-sans flex flex-col">
@@ -29,7 +36,7 @@
           </svg>
         </div>
         <h1 class="text-2xl font-black text-slate-900 tracking-tight">NURVELIO</h1>
-        <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">Family Budget Ecosystem</p>
+        <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">Family Budget Ecosystem + Supabase</p>
       </div>
 
       <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -543,7 +550,7 @@
     </main>
   </div>
 
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- JAVASCRIPT LOGIC & SUPABASE SYNC -->
   <script>
     let currentUserRole = null; 
     let currentCurrency = 'IDR';
@@ -605,9 +612,39 @@
 
     if(!db.budgetMembers) db.budgetMembers = ['Ayah', 'Ibu', 'Ellyas'];
 
-    function saveDB() {
+    // FUNGSI PERSISTENSI KE SUPABASE DAN LOCALSTORAGE
+    async function loadDBFromSupabase() {
+      try {
+        let { data, error } = await _supabase
+          .from('app_state')
+          .select('data')
+          .eq('id', 'main')
+          .single();
+        
+        if (data && data.data) {
+          db = data.data;
+          localStorage.setItem('nurvelio_db', JSON.stringify(db));
+        }
+      } catch (err) {
+        console.log('Menggunakan cache lokal (localStorage) sebagai fallback.', err);
+      }
+      if(!db.budgetMembers) db.budgetMembers = ['Ayah', 'Ibu', 'Ellyas'];
+      renderAll();
+    }
+
+    async function saveDB() {
       localStorage.setItem('nurvelio_db', JSON.stringify(db));
       renderAll();
+      
+      // Sinkronisasi otomatis ke Supabase database
+      try {
+        let { error } = await _supabase
+          .from('app_state')
+          .upsert({ id: 'main', data: db });
+        if (error) console.error('Gagal sinkronisasi ke Supabase:', error.message);
+      } catch (err) {
+        console.error('Error koneksi Supabase saat menyimpan:', err);
+      }
     }
 
     // LOGIN & AUTH LOGIC
@@ -629,12 +666,12 @@
       enterApp();
     }
 
-    function enterApp() {
+    async function enterApp() {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('mainAppWrapper').classList.remove('hidden');
 
       applyRolePermissions();
-      renderAll();
+      await loadDBFromSupabase(); // Muat data terbaru dari Supabase saat masuk
 
       let savedView = localStorage.getItem('nurvelio_active_view') || 'beranda';
       switchView(savedView);
