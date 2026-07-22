@@ -425,7 +425,7 @@
             <div>
               <label class="block text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">KE</label>
               <div class="grid grid-cols-3 gap-2">
-                <div id="convResultBox" class="col-span-2 px-3 py-2.5 bg-emerald-500 text-white border border-emerald-600 rounded-xl font-black text-lg flex items-center">
+                <div id="convResultBox" class="col-span-2 px-3 py-2.5 bg-white text-slate-900 border border-slate-300 rounded-xl font-bold text-base flex items-center">
                   0
                 </div>
                 <select id="convTo" class="px-3 py-2.5 bg-white border border-slate-300 rounded-xl font-bold text-sm focus:outline-none cursor-pointer" onchange="runConversion()">
@@ -1346,7 +1346,6 @@
           let usdToIdr = data.rates.IDR || 16000;
           let usdToQar = data.rates.QAR || 3.64;
           
-          // Memperbaiki basis exchangeRates agar konsisten menggunakan IDR sebagai basis (1)
           exchangeRates.IDR = 1;
           exchangeRates.USD = 1 / usdToIdr;
           exchangeRates.QAR = usdToQar / usdToIdr;
