@@ -6,8 +6,6 @@
   <title>NURVELIO - Dashboard Keluarga</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
-  <!-- Supabase JS SDK via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -16,12 +14,6 @@
         }
       }
     }
-
-    // Inisialisasi Supabase untuk Browser
-    const supabaseUrl = 'https://iqvnnaegzlmmtluzsdjx.supabase.co';
-    const supabaseKey = 'sb_publishable_cse4EDEA-O5NBEEL1XKOOg_arJ9wHo-'; 
-    const { createClient } = supabase;
-    const _supabase = createClient(supabaseUrl, supabaseKey);
   </script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen font-sans flex flex-col">
@@ -36,7 +28,7 @@
           </svg>
         </div>
         <h1 class="text-2xl font-black text-slate-900 tracking-tight">NURVELIO</h1>
-        <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">Family Budget Ecosystem + Supabase</p>
+        <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">Family Budget Ecosystem</p>
       </div>
 
       <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -55,7 +47,7 @@
     </div>
   </div>
 
-  <!-- ================= MAIN APP WRAPPER ================= -->
+  <!-- ================= MAIN APP WRAPPER (HIDDEN BEFORE LOGIN) ================= -->
   <div id="mainAppWrapper" class="flex flex-col flex-grow hidden">
 
     <!-- OVERLAY SIDEBAR -->
@@ -110,6 +102,7 @@
         </button>
       </div>
 
+      <!-- SIDEBAR FOOTER LOGOUT -->
       <div class="p-4 border-t border-slate-100">
         <button onclick="handleLogout()" class="w-full bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
           🚪 Keluar (Logout)
@@ -158,7 +151,7 @@
         <div class="flex justify-between items-center flex-wrap gap-3">
           <div>
             <h1 class="text-xl font-black text-slate-900 tracking-tight">Dashboard Keluarga</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Ringkasan keuangan dan pemantauan tagihan mendesak (0–14 hari)</p>
+            <p class="text-xs text-slate-500 mt-0.5">Ringkasan keuangan dan pemantauan tagihan mendesak (7–14 hari)</p>
           </div>
         </div>
 
@@ -223,13 +216,13 @@
           </div>
         </div>
 
-        <!-- ALERT TAGIHAN MENDEKATI JATUH TEMPO -->
+        <!-- ALERT TAGIHAN MENDEKATI JATUH TEMPO (7-14 HARI) & BELUM DIBAYAR -->
         <div id="homeAlertBanner" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2 text-xs" style="display:none;">
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <div class="flex items-center gap-3">
               <div class="text-amber-600 text-lg">⚠️</div>
               <div>
-                <strong id="alertTitle" class="text-amber-900 block font-bold">Tagihan Belum Dibayar Mendekati Jatuh Tempo (0-14 Hari)</strong>
+                <strong id="alertTitle" class="text-amber-900 block font-bold">Tagihan Belum Dibayar Mendekati Jatuh Tempo (7-14 Hari)</strong>
                 <span id="alertSubtitle" class="text-amber-700">Periksa daftar tagihan di bawah ini</span>
               </div>
             </div>
@@ -269,7 +262,7 @@
         </div>
       </div>
 
-      <!-- 2. TRANSAKSI -->
+      <!-- 2. TRANSAKSI (DENGAN INPUT TANGGAL KALENDER) -->
       <div id="view-transaksi" class="space-y-6 hidden">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div id="formAddTxCard" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
@@ -283,7 +276,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">KATEGORI / SUB-KATEGORI</label>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">KATEGORI / SUB-KATEGORI (Beserta Budget Maksimal)</label>
                 <select id="txCategory" class="w-full px-3 py-2 border rounded-xl font-medium" required></select>
               </div>
               <div>
@@ -476,6 +469,7 @@
           <button id="btnAddBillBtn" onclick="openAddBillModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm">+ Tambah Tagihan</button>
         </div>
 
+        <!-- KARTU RINGKASAN TAGIHAN -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block text-center">TOTAL TAGIHAN</span>
@@ -491,6 +485,7 @@
           </div>
         </div>
 
+        <!-- FORM TAMBAH TAGIHAN TERSEMBUNYI -->
         <div id="formAddBillContainer" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4" style="display:none;">
           <h3 class="font-bold text-slate-800 text-sm">Form Tambah Tagihan Baru</h3>
           <form onsubmit="addBill(event)" class="space-y-3">
@@ -547,7 +542,7 @@
     </main>
   </div>
 
-  <!-- JAVASCRIPT LOGIC & SUPABASE SYNC -->
+  <!-- JAVASCRIPT LOGIC -->
   <script>
     let currentUserRole = null; 
     let currentCurrency = 'IDR';
@@ -609,39 +604,12 @@
 
     if(!db.budgetMembers) db.budgetMembers = ['Ayah', 'Ibu', 'Ellyas'];
 
-    async function loadDBFromSupabase() {
-      try {
-        let { data, error } = await _supabase
-          .from('app_state')
-          .select('data')
-          .eq('id', 'main')
-          .single();
-        
-        if (data && data.data) {
-          db = data.data;
-          localStorage.setItem('nurvelio_db', JSON.stringify(db));
-        }
-      } catch (err) {
-        console.log('Menggunakan cache lokal (localStorage) sebagai fallback.', err);
-      }
-      if(!db.budgetMembers) db.budgetMembers = ['Ayah', 'Ibu', 'Ellyas'];
-      renderAll();
-    }
-
-    async function saveDB() {
+    function saveDB() {
       localStorage.setItem('nurvelio_db', JSON.stringify(db));
       renderAll();
-      
-      try {
-        let { error } = await _supabase
-          .from('app_state')
-          .upsert({ id: 'main', data: db });
-        if (error) console.error('Gagal sinkronisasi ke Supabase:', error.message);
-      } catch (err) {
-        console.error('Error koneksi Supabase saat menyimpan:', err);
-      }
     }
 
+    // LOGIN & AUTH LOGIC
     function handleLogin(e) {
       e.preventDefault();
       let idInput = document.getElementById('loginId').value.trim();
@@ -660,12 +628,12 @@
       enterApp();
     }
 
-    async function enterApp() {
+    function enterApp() {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('mainAppWrapper').classList.remove('hidden');
 
       applyRolePermissions();
-      await loadDBFromSupabase();
+      renderAll();
 
       let savedView = localStorage.getItem('nurvelio_active_view') || 'beranda';
       switchView(savedView);
