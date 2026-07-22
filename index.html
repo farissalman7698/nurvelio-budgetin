@@ -757,6 +757,7 @@
       }
 
       if(viewId === 'transaksi') renderCategories();
+      if(viewId === 'konversi') runConversion();
       if(viewId === 'beranda') setTimeout(renderTrendChart, 100);
       if(viewId === 'laporan') setTimeout(renderCharts, 100);
     }
@@ -1345,8 +1346,9 @@
           let usdToIdr = data.rates.IDR || 16000;
           let usdToQar = data.rates.QAR || 3.64;
           
-          exchangeRates.USD = 1;
-          exchangeRates.IDR = 1 / usdToIdr;
+          // Memperbaiki basis exchangeRates agar konsisten menggunakan IDR sebagai basis (1)
+          exchangeRates.IDR = 1;
+          exchangeRates.USD = 1 / usdToIdr;
           exchangeRates.QAR = usdToQar / usdToIdr;
         }
       } catch(e) {}
