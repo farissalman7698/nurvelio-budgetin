@@ -17,9 +17,9 @@
       }
     }
 
-    // Inisialisasi Supabase untuk Browser (disesuaikan dari format modul)
+    // Inisialisasi Supabase untuk Browser
     const supabaseUrl = 'https://iqvnnaegzlmmtluzsdjx.supabase.co';
-    const supabaseKey = 'sb_publishable_cse4EDEA-O5NBEEL1XKOOg_arJ9wHo-'; // Masukkan anon/public key Anda di sini
+    const supabaseKey = 'sb_publishable_cse4EDEA-O5NBEEL1XKOOg_arJ9wHo-'; 
     const { createClient } = supabase;
     const _supabase = createClient(supabaseUrl, supabaseKey);
   </script>
@@ -55,7 +55,7 @@
     </div>
   </div>
 
-  <!-- ================= MAIN APP WRAPPER (HIDDEN BEFORE LOGIN) ================= -->
+  <!-- ================= MAIN APP WRAPPER ================= -->
   <div id="mainAppWrapper" class="flex flex-col flex-grow hidden">
 
     <!-- OVERLAY SIDEBAR -->
@@ -110,7 +110,6 @@
         </button>
       </div>
 
-      <!-- SIDEBAR FOOTER LOGOUT -->
       <div class="p-4 border-t border-slate-100">
         <button onclick="handleLogout()" class="w-full bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
           🚪 Keluar (Logout)
@@ -159,7 +158,7 @@
         <div class="flex justify-between items-center flex-wrap gap-3">
           <div>
             <h1 class="text-xl font-black text-slate-900 tracking-tight">Dashboard Keluarga</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Ringkasan keuangan dan pemantauan tagihan mendesak (7–14 hari)</p>
+            <p class="text-xs text-slate-500 mt-0.5">Ringkasan keuangan dan pemantauan tagihan mendesak (0–14 hari)</p>
           </div>
         </div>
 
@@ -224,13 +223,13 @@
           </div>
         </div>
 
-        <!-- ALERT TAGIHAN MENDEKATI JATUH TEMPO (7-14 HARI) & BELUM DIBAYAR -->
+        <!-- ALERT TAGIHAN MENDEKATI JATUH TEMPO -->
         <div id="homeAlertBanner" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2 text-xs" style="display:none;">
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <div class="flex items-center gap-3">
               <div class="text-amber-600 text-lg">⚠️</div>
               <div>
-                <strong id="alertTitle" class="text-amber-900 block font-bold">Tagihan Belum Dibayar Mendekati Jatuh Tempo (7-14 Hari)</strong>
+                <strong id="alertTitle" class="text-amber-900 block font-bold">Tagihan Belum Dibayar Mendekati Jatuh Tempo (0-14 Hari)</strong>
                 <span id="alertSubtitle" class="text-amber-700">Periksa daftar tagihan di bawah ini</span>
               </div>
             </div>
@@ -270,7 +269,7 @@
         </div>
       </div>
 
-      <!-- 2. TRANSAKSI (DENGAN INPUT TANGGAL KALENDER) -->
+      <!-- 2. TRANSAKSI -->
       <div id="view-transaksi" class="space-y-6 hidden">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div id="formAddTxCard" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
@@ -284,7 +283,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1">KATEGORI / SUB-KATEGORI (Beserta Budget Maksimal)</label>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">KATEGORI / SUB-KATEGORI</label>
                 <select id="txCategory" class="w-full px-3 py-2 border rounded-xl font-medium" required></select>
               </div>
               <div>
@@ -477,7 +476,6 @@
           <button id="btnAddBillBtn" onclick="openAddBillModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm">+ Tambah Tagihan</button>
         </div>
 
-        <!-- KARTU RINGKASAN TAGIHAN -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block text-center">TOTAL TAGIHAN</span>
@@ -493,7 +491,6 @@
           </div>
         </div>
 
-        <!-- FORM TAMBAH TAGIHAN TERSEMBUNYI -->
         <div id="formAddBillContainer" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4" style="display:none;">
           <h3 class="font-bold text-slate-800 text-sm">Form Tambah Tagihan Baru</h3>
           <form onsubmit="addBill(event)" class="space-y-3">
@@ -612,7 +609,6 @@
 
     if(!db.budgetMembers) db.budgetMembers = ['Ayah', 'Ibu', 'Ellyas'];
 
-    // FUNGSI PERSISTENSI KE SUPABASE DAN LOCALSTORAGE
     async function loadDBFromSupabase() {
       try {
         let { data, error } = await _supabase
@@ -636,7 +632,6 @@
       localStorage.setItem('nurvelio_db', JSON.stringify(db));
       renderAll();
       
-      // Sinkronisasi otomatis ke Supabase database
       try {
         let { error } = await _supabase
           .from('app_state')
@@ -647,7 +642,6 @@
       }
     }
 
-    // LOGIN & AUTH LOGIC
     function handleLogin(e) {
       e.preventDefault();
       let idInput = document.getElementById('loginId').value.trim();
@@ -671,7 +665,7 @@
       document.getElementById('mainAppWrapper').classList.remove('hidden');
 
       applyRolePermissions();
-      await loadDBFromSupabase(); // Muat data terbaru dari Supabase saat masuk
+      await loadDBFromSupabase();
 
       let savedView = localStorage.getItem('nurvelio_active_view') || 'beranda';
       switchView(savedView);
